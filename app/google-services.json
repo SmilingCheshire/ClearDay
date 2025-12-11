@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "341424221964",
+    "project_id": "clearday-51243",
+    "storage_bucket": "clearday-51243.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:341424221964:android:2a43440983d905b5512329",
+        "android_client_info": {
+          "package_name": "com.example.clearday"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApkIao4Kj_1UBj2PZYvikYkOqHgq5VHRw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
