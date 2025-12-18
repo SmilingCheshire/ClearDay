@@ -2,7 +2,6 @@ package com.example.clearday.network
 
 
 import com.example.clearday.BuildConfig
-import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -12,7 +11,7 @@ object ApiClient {
 
     private const val BASE_URL = "https://api.openweathermap.org/data/2.5/"
 
-    private val logging = HttpLoggingInterceptor().apply {
+    private val logging = HttpLoggingInterceptor().apply() {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
