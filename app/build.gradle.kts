@@ -19,6 +19,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField( "String", "OPENWEATHER_API_KEY", "\"${project.properties["OPENWEATHER_API_KEY"]}\"")
+        buildConfigField( "String", "POLLEN_API_KEY", "\"${project.properties["POLLEN_API_KEY"]}\"")
     }
     android.buildFeatures.buildConfig = true
 
@@ -56,12 +57,9 @@ dependencies {
     // Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
-<<<<<<< HEAD
-    //Okhttp
-=======
+
     //okhttp
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
->>>>>>> main
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
 
