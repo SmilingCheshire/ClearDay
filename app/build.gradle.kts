@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.compose.compiler)
     id("com.google.gms.google-services")
 }
 
@@ -19,6 +20,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField( "String", "OPENWEATHER_API_KEY", "\"${project.properties["OPENWEATHER_API_KEY"]}\"")
+        buildConfigField( "String", "POLLEN_API_KEY", "\"${project.properties["POLLEN_API_KEY"]}\"")
     }
     android.buildFeatures.buildConfig = true
 
@@ -40,10 +42,22 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
+        compose = true
     }
 }
 
 dependencies {
+    // --- Jetpack Compose ---
+    implementation(platform(libs.compose.bom))
+    implementation(libs.compose.ui)
+    implementation(libs.compose.ui.graphics)
+    implementation(libs.compose.ui.tooling.preview)
+    implementation(libs.compose.material3)
+    implementation(libs.activity.compose)
+    debugImplementation(libs.compose.ui.tooling)
+    debugImplementation(libs.compose.ui.test.manifest)
+
     // --- Firebase Auth ---
     implementation("com.google.firebase:firebase-auth:22.3.1")
     // --- Firebase Firestore ---
@@ -55,6 +69,7 @@ dependencies {
     // Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+
     //okhttp
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
