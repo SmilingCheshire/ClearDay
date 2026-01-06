@@ -1,5 +1,6 @@
 package com.example.clearday.repository
 
+import android.util.Log
 import com.example.clearday.network.PollenApiClient
 import com.example.clearday.network.model.PollenForecastResponse
 
@@ -17,6 +18,7 @@ class PollenRepository {
         languageCode: String = "en"
     ): Result<PollenForecastResponse> {
         return try {
+
             val response = pollenApiService.getPollenForecast(
                 latitude = latitude,
                 longitude = longitude,
@@ -25,8 +27,10 @@ class PollenRepository {
                 languageCode = languageCode,
                 apiKey = PollenApiClient.getApiKey()
             )
+            Log.d("POLLEN_API", "Response: $response")
             Result.success(response)
         } catch (e: Exception) {
+            Log.e("POLLEN_API", "Error", e)
             Result.failure(e)
         }
     }
@@ -50,8 +54,10 @@ class PollenRepository {
                 languageCode = languageCode,
                 apiKey = PollenApiClient.getApiKey()
             )
+            Log.d("POLLEN_API", "Response: $response")
             Result.success(response)
         } catch (e: Exception) {
+            Log.e("POLLEN_API", "Error", e)
             Result.failure(e)
         }
     }

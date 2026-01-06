@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -18,9 +21,17 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField( "String", "OPENWEATHER_API_KEY", "\"${project.properties["OPENWEATHER_API_KEY"]}\"")
-        buildConfigField( "String", "POLLEN_API_KEY", "\"${project.properties["POLLEN_API_KEY"]}\"")
+        // Load API key from local.properties
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localProperties.load(FileInputStream(localPropertiesFile))
+        }
+        val pollenApiKey = localProperties.getProperty("POLLEN_API_KEY") ?: ""
+        buildConfigField("String", "POLLEN_API_KEY", "\"$pollenApiKey\"")
+        
+        val openWeatherApiKey = localProperties.getProperty("OPENWEATHER_API_KEY") ?: ""
+        buildConfigField("String", "OPENWEATHER_API_KEY", "\"$openWeatherApiKey\"")
     }
     android.buildFeatures.buildConfig = true
 
@@ -55,6 +66,7 @@ dependencies {
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)
     implementation(libs.activity.compose)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     debugImplementation(libs.compose.ui.tooling)
     debugImplementation(libs.compose.ui.test.manifest)
 

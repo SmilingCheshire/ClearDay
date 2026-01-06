@@ -396,5 +396,18 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Button to open Pollen Activity -->
+        <Button
+            android:id="@+id/btnOpenPollen"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="View Detailed Pollen Screen"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:padding="16dp"
+            android:background="@drawable/tag_orange"
+            android:textColor="#FFFFFF" />
+
     </LinearLayout>
 </ScrollView>

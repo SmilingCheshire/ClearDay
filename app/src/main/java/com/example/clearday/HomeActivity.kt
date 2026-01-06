@@ -1,6 +1,7 @@
 package com.example.clearday
 
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.*
@@ -37,6 +38,9 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var tvAqiLabel: TextView
     private lateinit var tvAqiAdvice: TextView
 
+    // Button
+    private lateinit var btnOpenPollen: Button
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
@@ -65,6 +69,14 @@ class HomeActivity : AppCompatActivity() {
         tvAqiValue = findViewById(R.id.tvAqiValue)
         tvAqiLabel = findViewById(R.id.tvAqiLabel)
         tvAqiAdvice = findViewById(R.id.tvAqiAdvice)
+
+        btnOpenPollen = findViewById(R.id.btnOpenPollen)
+
+        // Set up button click listener to open PollenActivity
+        btnOpenPollen.setOnClickListener {
+            val intent = Intent(this, PollenActivity::class.java)
+            startActivity(intent)
+        }
 
         // TODO: replace this with real API calls (pollen + air quality)
         loadMockData()
