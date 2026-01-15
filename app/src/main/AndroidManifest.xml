@@ -35,6 +35,11 @@
         <activity
             android:name=".PollenActivity"
             android:exported="false" />
+        <activity
+            android:name=".SymptomDiaryActivity"
+            android:exported="false"
+            android:label="Symptom Diary"
+            android:theme="@style/Theme.Material3.DayNight.NoActionBar" />
     </application>
 
 </manifest>

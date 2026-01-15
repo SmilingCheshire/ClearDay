@@ -11,7 +11,6 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- High pollen alert banner -->
         <LinearLayout
             android:id="@+id/alertContainer"
             android:layout_width="match_parent"
@@ -44,7 +43,7 @@
                     android:layout_height="wrap_content"
                     android:textStyle="bold"
                     android:textColor="#E65100"
-                    android:text="High Pollen Alert" />
+                    android:text="Pollen Alert" />
 
                 <TextView
                     android:id="@+id/tvAlertBody"
@@ -53,12 +52,10 @@
                     android:textColor="#8A6D3B"
                     android:textSize="12sp"
                     android:layout_marginTop="2dp"
-                    android:text="Tree pollen levels are high today..." />
+                    android:text="High allergen levels detected." />
             </LinearLayout>
-
         </LinearLayout>
 
-        <!-- Allergy risk card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -81,7 +78,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Today's Allergy Risk"
+                        android:text="Your Allergy Risk"
                         android:textStyle="bold"
                         android:textSize="16sp" />
 
@@ -89,21 +86,19 @@
                         android:id="@+id/tvAllergyRiskLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="High"
+                        android:text="Loading..."
                         android:textSize="28sp"
                         android:textColor="#FF6D00"
                         android:layout_marginTop="8dp" />
 
                     <TextView
-                        android:id="@+id/tvAllergyRiskDesc"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Based on your allergen profile"
+                        android:text="Based on your profile"
                         android:textColor="#777777"
                         android:layout_marginTop="4dp" />
                 </LinearLayout>
 
-                <!-- simple circular indicator (fake gauge) -->
                 <FrameLayout
                     android:layout_width="72dp"
                     android:layout_height="72dp"
@@ -115,7 +110,7 @@
                         android:layout_height="match_parent"
                         android:indeterminate="false"
                         android:max="100"
-                        android:progress="75"
+                        android:progress="0"
                         android:rotation="-90"
                         android:progressDrawable="@drawable/progress_circular_orange" />
 
@@ -124,15 +119,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center"
-                        android:text="7.5"
+                        android:text="--"
                         android:textColor="#FF6D00"
                         android:textStyle="bold" />
                 </FrameLayout>
-
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Pollen levels card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -154,9 +147,6 @@
                     android:textSize="16sp"
                     android:layout_marginBottom="8dp" />
 
-                <!-- Row template repeated 3x -->
-
-                <!-- Tree pollen -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -181,14 +171,14 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Tree Pollen"
+                            android:text="Trees"
                             android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/tvTreeValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="8.2 grains/m³"
+                            android:text="Fetching..."
                             android:textSize="12sp"
                             android:textColor="#777777" />
 
@@ -208,14 +198,12 @@
                         android:layout_height="wrap_content"
                         android:paddingHorizontal="10dp"
                         android:paddingVertical="4dp"
-                        android:text="High"
+                        android:text="--"
                         android:textSize="12sp"
                         android:textColor="#FFFFFF"
-                        android:background="@drawable/tag_orange"
-                        android:layout_marginStart="4dp" />
+                        android:background="@drawable/tag_orange" />
                 </LinearLayout>
 
-                <!-- Grass pollen -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -240,14 +228,14 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Grass Pollen"
+                            android:text="Grass"
                             android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/tvGrassValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="5.4 grains/m³"
+                            android:text="Fetching..."
                             android:textSize="12sp"
                             android:textColor="#777777" />
 
@@ -267,14 +255,12 @@
                         android:layout_height="wrap_content"
                         android:paddingHorizontal="10dp"
                         android:paddingVertical="4dp"
-                        android:text="Moderate"
+                        android:text="--"
                         android:textSize="12sp"
                         android:textColor="#FFFFFF"
-                        android:background="@drawable/tag_yellow"
-                        android:layout_marginStart="4dp" />
+                        android:background="@drawable/tag_yellow" />
                 </LinearLayout>
 
-                <!-- Weed pollen -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -299,14 +285,14 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Weed Pollen"
+                            android:text="Weeds"
                             android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/tvWeedValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="2.1 grains/m³"
+                            android:text="Fetching..."
                             android:textSize="12sp"
                             android:textColor="#777777" />
 
@@ -326,17 +312,15 @@
                         android:layout_height="wrap_content"
                         android:paddingHorizontal="10dp"
                         android:paddingVertical="4dp"
-                        android:text="Low"
+                        android:text="--"
                         android:textSize="12sp"
                         android:textColor="#FFFFFF"
-                        android:background="@drawable/tag_green"
-                        android:layout_marginStart="4dp" />
+                        android:background="@drawable/tag_green" />
                 </LinearLayout>
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- AQI card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -367,7 +351,7 @@
                         android:id="@+id/tvAqiValue"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="42"
+                        android:text="--"
                         android:textSize="32sp"
                         android:textStyle="bold"
                         android:textColor="#2E7D32"
@@ -377,7 +361,7 @@
                         android:id="@+id/tvAqiLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Good"
+                        android:text="Waiting..."
                         android:textColor="#2E7D32"
                         android:layout_marginTop="2dp" />
                 </LinearLayout>
@@ -388,7 +372,7 @@
                     android:layout_height="wrap_content"
                     android:paddingHorizontal="12dp"
                     android:paddingVertical="6dp"
-                    android:text="Safe for outdoor activities"
+                    android:text="Checking..."
                     android:textColor="#2E7D32"
                     android:textSize="12sp"
                     android:background="#E8F5E9"
@@ -396,17 +380,24 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Button to open Pollen Activity -->
         <Button
             android:id="@+id/btnOpenPollen"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="View Detailed Pollen Screen"
+            android:text="View Detailed Forecast"
             android:textAllCaps="false"
             android:textSize="16sp"
             android:padding="16dp"
             android:background="@drawable/tag_orange"
+            android:textColor="#FFFFFF" />
+        <Button
+            android:id="@+id/btnSymptomDiary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Open Symptom Diary"
+            android:backgroundTint="#4CAF50"
             android:textColor="#FFFFFF" />
 
     </LinearLayout>
