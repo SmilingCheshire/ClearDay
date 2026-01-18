@@ -20,8 +20,7 @@ interface PollenApiService {
         @Query("location.longitude") longitude: Double,
         @Query("days") days: Int = 5,
         @Query("pageSize") pageSize: Int = 5,
-        @Query("plantsDescription") plantsDescription: Boolean = true,
-        @Query("languageCode") languageCode: String = "pl",
+        @Query("languageCode") languageCode: String = "en",
         @Query("key") apiKey: String
     ): PollenForecastResponse
 
@@ -36,7 +35,8 @@ interface PollenApiService {
         @Query("days") days: Int = 5,
         @Query("pageSize") pageSize: Int = 5,
         @Query("plantsDescription") plantsDescription: Boolean = true,
-        @Query("languageCode") languageCode: String = "pl",
+        @Query("languageCode") languageCode: String = "en",
+    
         @Query("key") apiKey: String
     ): PollenForecastResponse
 }

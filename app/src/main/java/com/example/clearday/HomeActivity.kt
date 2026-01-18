@@ -2,11 +2,18 @@ package com.example.clearday
 
 
 import android.content.Intent
+import android.location.Location
 import android.os.Bundle
 import android.view.View
 import android.widget.*
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.clearday.R
+import com.example.clearday.network.model.PollenForecastResponse
+import com.example.clearday.repository.PollenRepository
+import com.example.clearday.viewmodel.PollenViewModel
+import kotlinx.coroutines.launch
 
 class HomeActivity : AppCompatActivity() {
 
@@ -41,9 +48,16 @@ class HomeActivity : AppCompatActivity() {
     // Button
     private lateinit var btnOpenPollen: Button
 
+    private val pollenRepository= PollenRepository()
+
+    private val viewModel by viewModels<PollenViewModel>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
+
+
+
 
         // --- bind views ---
         alertContainer = findViewById(R.id.alertContainer)
@@ -78,11 +92,55 @@ class HomeActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        // TODO: replace this with real API calls (pollen + air quality)
-        loadMockData()
+        
+        lifecycleScope.launch {
+            // Wait for location to be available
+            var location = viewModel.currentLocation.value
+            while (location == null) {
+                kotlinx.coroutines.delay(100)
+                location = viewModel.currentLocation.value
+            }
+            
+            // Fetch pollen data once location is available
+            val result = pollenRepository.getPollenForecast(
+                latitude = location.latitude,
+                longitude = location.longitude
+            )
+            result?.onSuccess { response ->
+                loadMockData(response)
+            }?.onFailure { e ->
+                Toast.makeText(
+                    this@HomeActivity,
+                    "API error: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
     }
 
-    private fun loadMockData() {
+    private fun loadMockData(response: PollenForecastResponse) {
+        val today=response.dailyInfo?.firstOrNull()?: return
+        today.pollenTypeInfo?.forEach { pollen ->
+            when(pollen.code){
+                "TREE" -> {
+                    tvTreeValue.text = "${pollen.indexInfo?.value ?: 0} grains/m³"
+                    pbTree.progress = ((pollen.indexInfo?.value ?: 0) * 20)
+                    tvTreeTag.text = pollen.indexInfo?.category ?: "N/A"
+                }
+                "GRASS" -> {
+                    tvGrassValue.text = "${pollen.indexInfo?.value ?: 0} grains/m³"
+                    pbGrass.progress = ((pollen.indexInfo?.value ?: 0) * 20)
+                    tvGrassTag.text = pollen.indexInfo?.category ?: "N/A"
+                }
+                "WEED" -> {
+                    tvWeedValue.text = "${pollen.indexInfo?.value ?: 0} grains/m³"
+                    pbWeed.progress = ((pollen.indexInfo?.value ?: 0) * 20)
+                    tvWeedTag.text = pollen.indexInfo?.category ?: "N/A"
+                }
+            }
+        }
+
+
         // High pollen alert
         alertContainer.visibility = View.VISIBLE
         tvAlertTitle.text = "High Pollen Alert"
@@ -93,19 +151,6 @@ class HomeActivity : AppCompatActivity() {
         tvAllergyRiskLabel.text = "High"
         tvAllergyRiskDesc.text = "Based on your allergen profile"
         tvAllergyScore.text = "7.5"
-
-        // Pollen levels (scale 0–100 mapped to progress 0–100)
-        tvTreeValue.text = "8.2 grains/m³"
-        pbTree.progress = 90
-        tvTreeTag.text = "High"
-
-        tvGrassValue.text = "5.4 grains/m³"
-        pbGrass.progress = 65
-        tvGrassTag.text = "Moderate"
-
-        tvWeedValue.text = "2.1 grains/m³"
-        pbWeed.progress = 25
-        tvWeedTag.text = "Low"
 
         // AQI – you can bind this from your OpenWeather air quality call
         tvAqiValue.text = "42"

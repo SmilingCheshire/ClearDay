@@ -153,17 +153,17 @@ private fun LocationCard(latitude: Double, longitude: Double) {
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = "Lokalizacja",
+                text = "Location",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Szerokość: %.4f°".format(latitude),
+                text = "Width: %.4f°".format(latitude),
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = "Długość: %.4f°".format(longitude),
+                text = "Length: %.4f°".format(longitude),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
