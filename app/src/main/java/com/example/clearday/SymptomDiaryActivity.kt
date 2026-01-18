@@ -19,6 +19,8 @@ import com.example.clearday.services.FirestoreService
 import com.google.firebase.auth.FirebaseAuth
 import java.text.SimpleDateFormat
 import java.util.*
+import android.content.Intent
+import androidx.compose.ui.platform.LocalContext
 
 class SymptomDiaryActivity : ComponentActivity() {
     private val firestoreService = FirestoreService()
@@ -50,9 +52,20 @@ fun SymptomDiaryScreen(onSave: (Map<String, Int>, Int) -> Unit) {
     val options = listOf("Sneezing", "Runny Nose", "Coughing", "Itchy Eyes", "Shortness of Breath")
     var generalSev by remember { mutableFloatStateOf(1f) }
     val selected = remember { mutableStateMapOf<String, Int>() }
+    val context = LocalContext.current
 
     Scaffold(topBar = { TopAppBar(title = { Text("Daily Symptom Diary") }) }) { padding ->
         LazyColumn(modifier = Modifier.padding(padding).padding(16.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+            item {
+                OutlinedButton(
+                    onClick = {
+                        context.startActivity(Intent(context, CalendarActivity::class.java))
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("View History Calendar \uD83D\uDCC5") // Calendar emoji
+                }
+            }
             item {
                 Card(elevation = CardDefaults.cardElevation(2.dp)) {
                     Column(modifier = Modifier.padding(16.dp)) {

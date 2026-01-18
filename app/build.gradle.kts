@@ -29,9 +29,12 @@ android {
         }
         val pollenApiKey = localProperties.getProperty("POLLEN_API_KEY") ?: ""
         buildConfigField("String", "POLLEN_API_KEY", "\"$pollenApiKey\"")
-        
+
         val openWeatherApiKey = localProperties.getProperty("OPENWEATHER_API_KEY") ?: ""
         buildConfigField("String", "OPENWEATHER_API_KEY", "\"$openWeatherApiKey\"")
+
+        val waqiApiKey = localProperties.getProperty("WAQI_API_KEY") ?: ""
+        buildConfigField("String", "WAQI_API_KEY", "\"$waqiApiKey\"")
     }
     android.buildFeatures.buildConfig = true
 
@@ -67,6 +70,9 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.activity.compose)
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    implementation("androidx.work:work-runtime-ktx:2.8.1")
+    implementation(libs.androidx.swiperefreshlayout)
+    implementation(libs.androidx.work.runtime.ktx)
     debugImplementation(libs.compose.ui.tooling)
     debugImplementation(libs.compose.ui.test.manifest)
 

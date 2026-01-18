@@ -1,40 +1,52 @@
 package com.example.clearday.repository
 
 import com.example.clearday.BuildConfig
-import com.example.clearday.network.ApiClient
-import com.example.clearday.network.WeatherApiService
-import com.example.clearday.network.model.AirQualityResponse
-import com.example.clearday.network.model.WeatherResponse
-import android.util.Log
+import com.example.clearday.models.CurrentWeatherResponse
+import com.example.clearday.models.WaqiResponse
+import com.example.clearday.network.WeatherService
+import com.example.clearday.network.WaqiService
 
-class WeatherRepository {
-    // Tworzymy instancję serwisu przez ApiClient
-    private val api: WeatherApiService = ApiClient.retrofit.create(WeatherApiService::class.java)
+// Update constructor to take BOTH services
+class WeatherRepository(
+    private val weatherApi: WeatherService,
+    private val waqiApi: WaqiService
+) {
 
-    suspend fun getWeather(lat: Double, lon: Double): Result<WeatherResponse> {
+    // 1. Weather (Still from OpenWeather)
+    suspend fun getCurrentWeather(lat: Double, lon: Double): Result<CurrentWeatherResponse> {
         return try {
-            val response = api.getCurrentWeather(
-                lat = lat,
-                lon = lon,
-                apiKey = BuildConfig.OPENWEATHER_API_KEY
-            )
-            Result.success(response)
+            val res = weatherApi.getCurrentWeather(lat, lon, com.example.clearday.BuildConfig.OPENWEATHER_API_KEY)
+            Result.success(res)
         } catch (e: Exception) {
-            Log.e("WeatherRepo", "Weather error: ${e.message}")
             Result.failure(e)
         }
     }
 
-    suspend fun getAirQuality(lat: Double, lon: Double): Result<AirQualityResponse> {
+    // 2. Air Quality (NOW FROM WAQI)
+    suspend fun getAirQuality(lat: Double, lon: Double): Result<WaqiResponse> {
         return try {
-            val response = api.getAirQuality(
+            // PASS THE TOKEN HERE using BuildConfig.WAQI_API_KEY
+            val response = waqiApi.getAirQuality(
                 lat = lat,
                 lon = lon,
-                apiKey = BuildConfig.OPENWEATHER_API_KEY
+                token = BuildConfig.WAQI_API_KEY
             )
-            Result.success(response)
+
+            if (response.status == "ok") {
+                Result.success(response)
+            } else {
+                Result.failure(Exception("API Error: ${response.status}"))
+            }
         } catch (e: Exception) {
-            Log.e("WeatherRepo", "AQI error: ${e.message}")
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getForecast(lat: Double, lon: Double): Result<WeatherService.ForecastResponse> {
+        return try {
+            val res = weatherApi.getForecast(lat, lon, com.example.clearday.BuildConfig.OPENWEATHER_API_KEY)
+            Result.success(res)
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }
