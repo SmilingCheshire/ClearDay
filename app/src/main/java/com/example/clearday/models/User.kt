@@ -6,5 +6,7 @@ data class User(
     val email: String = "",
     val dob: String = "",
     val trackedAllergens: List<String> = emptyList(), // Lista kluczy z Pollen API
-    val units: String = "metric"
+    val units: String = "metric",
+    val morningBriefingHour: Int = 7, // Default 7:00 AM
+    val morningBriefingMinute: Int = 0
 )

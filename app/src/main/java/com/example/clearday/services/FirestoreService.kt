@@ -23,6 +23,12 @@ class FirestoreService {
             }
             .addOnFailureListener { onFailure(it) }
     }
+    
+    fun updateUserProfile(uid: String, updates: Map<String, Any>, onComplete: (Boolean) -> Unit) {
+        db.collection("users").document(uid)
+            .update(updates)
+            .addOnCompleteListener { onComplete(it.isSuccessful) }
+    }
 
     // --- DAILY LOGS SECTION ---
     // Path: users/{uid}/daily_logs/{date}
