@@ -7,10 +7,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import com.example.clearday.ui.screen.PollenScreen
 
+/**
+ * Activity providing air allergen forecasts.
+ * Serves as a container for the PollenScreen.
+ */
 class PollenActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         setContent {
             MaterialTheme {
                 Surface {

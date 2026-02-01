@@ -6,26 +6,35 @@ import com.example.clearday.models.WaqiResponse
 import com.example.clearday.network.WeatherService
 import com.example.clearday.network.WaqiService
 
-// Update constructor to take BOTH services
+/**
+ * Consolidated repository for weather conditions (OpenWeather) and air quality data (WAQI).
+ */
 class WeatherRepository(
     private val weatherApi: WeatherService,
     private val waqiApi: WaqiService
 ) {
 
-    // 1. Weather (Still from OpenWeather)
+    /**
+     * Fetches current atmospheric weather conditions.
+     */
     suspend fun getCurrentWeather(lat: Double, lon: Double): Result<CurrentWeatherResponse> {
         return try {
-            val res = weatherApi.getCurrentWeather(lat, lon, com.example.clearday.BuildConfig.OPENWEATHER_API_KEY)
+            val res = weatherApi.getCurrentWeather(
+                lat,
+                lon,
+                BuildConfig.OPENWEATHER_API_KEY
+            )
             Result.success(res)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    // 2. Air Quality (NOW FROM WAQI)
+    /**
+     * Retrieves detailed air quality data from the WAQI API service.
+     */
     suspend fun getAirQuality(lat: Double, lon: Double): Result<WaqiResponse> {
         return try {
-            // PASS THE TOKEN HERE using BuildConfig.WAQI_API_KEY
             val response = waqiApi.getAirQuality(
                 lat = lat,
                 lon = lon,
@@ -42,9 +51,16 @@ class WeatherRepository(
         }
     }
 
+    /**
+     * Fetches long-term weather forecast data.
+     */
     suspend fun getForecast(lat: Double, lon: Double): Result<WeatherService.ForecastResponse> {
         return try {
-            val res = weatherApi.getForecast(lat, lon, com.example.clearday.BuildConfig.OPENWEATHER_API_KEY)
+            val res = weatherApi.getForecast(
+                lat,
+                lon,
+                BuildConfig.OPENWEATHER_API_KEY
+            )
             Result.success(res)
         } catch (e: Exception) {
             Result.failure(e)

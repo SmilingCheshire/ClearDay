@@ -9,6 +9,9 @@ import com.example.clearday.network.model.PollenForecastResponse
 import com.example.clearday.repository.PollenRepository
 import kotlinx.coroutines.launch
 
+/**
+ * UI State representing the different phases of fetching pollen forecast data.
+ */
 sealed class PollenUiState {
     object Idle : PollenUiState()
     object Loading : PollenUiState()
@@ -17,30 +20,30 @@ sealed class PollenUiState {
 }
 
 class PollenViewModel : ViewModel() {
-    
+
     private val repository = PollenRepository()
-    
+
     private val _uiState = mutableStateOf<PollenUiState>(PollenUiState.Idle)
     val uiState: State<PollenUiState> = _uiState
-    
+
     private val _currentLocation = mutableStateOf<Location?>(null)
     val currentLocation: State<Location?> = _currentLocation
-    
+
     fun updateLocation(location: Location) {
         _currentLocation.value = location
         fetchPollenData(location.latitude, location.longitude)
     }
-    
+
     fun fetchPollenData(latitude: Double, longitude: Double, days: Int = 5) {
         viewModelScope.launch {
             _uiState.value = PollenUiState.Loading
-            
+
             val result = repository.getPollenForecastWithPlants(
                 latitude = latitude,
                 longitude = longitude,
                 days = days
             )
-            
+
             _uiState.value = if (result.isSuccess) {
                 PollenUiState.Success(result.getOrThrow())
             } else {
@@ -50,7 +53,7 @@ class PollenViewModel : ViewModel() {
             }
         }
     }
-    
+
     fun retry() {
         _currentLocation.value?.let { location ->
             fetchPollenData(location.latitude, location.longitude)

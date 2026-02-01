@@ -4,12 +4,15 @@ import android.util.Log
 import com.example.clearday.network.PollenApiClient
 import com.example.clearday.network.model.PollenForecastResponse
 
+/**
+ * Repository for fetching pollen levels and plant-specific forecasts using Google Pollen API.
+ */
 class PollenRepository {
 
     private val pollenApiService = PollenApiClient.pollenApiService
 
     /**
-     * Get pollen forecast for a specific location.
+     * Retrieves general pollen forecast for a given location.
      */
     suspend fun getPollenForecast(
         latitude: Double,
@@ -18,7 +21,6 @@ class PollenRepository {
         languageCode: String = "en"
     ): Result<PollenForecastResponse> {
         return try {
-
             val response = pollenApiService.getPollenForecast(
                 latitude = latitude,
                 longitude = longitude,
@@ -27,16 +29,14 @@ class PollenRepository {
                 languageCode = languageCode,
                 apiKey = PollenApiClient.getApiKey()
             )
-            Log.d("POLLEN_API", "Response: $response")
             Result.success(response)
         } catch (e: Exception) {
-            Log.e("POLLEN_API", "Error", e)
             Result.failure(e)
         }
     }
 
     /**
-     * Get pollen forecast with detailed plant information.
+     * Retrieves pollen forecast including detailed botanical information about plants.
      */
     suspend fun getPollenForecastWithPlants(
         latitude: Double,
@@ -54,10 +54,8 @@ class PollenRepository {
                 languageCode = languageCode,
                 apiKey = PollenApiClient.getApiKey()
             )
-            Log.d("POLLEN_API", "Response: $response")
             Result.success(response)
         } catch (e: Exception) {
-            Log.e("POLLEN_API", "Error", e)
             Result.failure(e)
         }
     }

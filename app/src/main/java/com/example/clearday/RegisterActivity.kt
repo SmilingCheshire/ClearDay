@@ -13,6 +13,9 @@ import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.*
 import java.util.*
 
+/**
+ * Activity responsible for new user registration and initial allergen profile setup.
+ */
 class RegisterActivity : AppCompatActivity() {
 
     private lateinit var etEmail: TextInputEditText
@@ -35,6 +38,9 @@ class RegisterActivity : AppCompatActivity() {
     private val firestoreService = FirestoreService()
     private val scope = MainScope()
 
+    /**
+     * Initializes UI components, sets up allergen checkboxes, and assigns click listeners.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
@@ -62,15 +68,16 @@ class RegisterActivity : AppCompatActivity() {
         )
 
         etDob.setOnClickListener { showDatePicker() }
-
         btnRegister.setOnClickListener { register() }
-
         btnGoToLogin.setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
         }
     }
 
+    /**
+     * Displays a DatePickerDialog to select the user's date of birth.
+     */
     private fun showDatePicker() {
         val calendar = Calendar.getInstance()
         val datePickerDialog = DatePickerDialog(this, { _, year, month, day ->
@@ -82,6 +89,10 @@ class RegisterActivity : AppCompatActivity() {
         datePickerDialog.show()
     }
 
+    /**
+     * Validates input and creates a new user account via AuthService.
+     * On success, transitions UI to the allergen selection step.
+     */
     private fun register() {
         val email = etEmail.text?.toString()?.trim() ?: ""
         val name = etName.text?.toString()?.trim() ?: ""
@@ -100,7 +111,6 @@ class RegisterActivity : AppCompatActivity() {
 
         scope.launch {
             try {
-                // Wyliczamy wiek z daty, aby pasował do Twojego AuthService (age: Int)
                 val age = calculateAge(selectedDob)
 
                 val firebaseUser = withContext(Dispatchers.IO) {
@@ -126,6 +136,9 @@ class RegisterActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Calculates user age based on the provided date of birth string.
+     */
     private fun calculateAge(dob: String): Int {
         val parts = dob.split("-")
         val year = parts[0].toInt()
@@ -133,6 +146,9 @@ class RegisterActivity : AppCompatActivity() {
         return calendar.get(Calendar.YEAR) - year
     }
 
+    /**
+     * Collects selected allergens and saves the complete user profile to Firestore.
+     */
     private fun saveAllergenInfo(uid: String, email: String, name: String, surname: String) {
         val selectedAllergens = checkboxes.filter { it.value.isChecked }.keys.toList()
 
@@ -160,6 +176,9 @@ class RegisterActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Cancels the coroutine scope when the activity is destroyed to prevent leaks.
+     */
     override fun onDestroy() {
         super.onDestroy()
         scope.cancel()

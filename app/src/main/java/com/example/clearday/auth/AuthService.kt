@@ -3,12 +3,19 @@ package com.example.clearday.auth
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
+
+/**
+ * Service class handling Firebase Authentication and initial user data synchronization with Firestore.
+ */
 class AuthService {
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 
-    // Register with email & password + extra fields
+    /**
+     * Registers a new user with email and password, then creates a corresponding user document in Firestore.
+     * * @return The registered [FirebaseUser] or null if the process fails.
+     */
     suspend fun registerWithEmail(
         email: String,
         password: String,
@@ -16,7 +23,6 @@ class AuthService {
         surname: String,
         age: Int
     ): FirebaseUser? {
-        // Use Tasks.await or Kotlin coroutines + suspendCancellableCoroutine
         val result = com.google.android.gms.tasks.Tasks.await(
             auth.createUserWithEmailAndPassword(email, password)
         )
@@ -38,7 +44,10 @@ class AuthService {
         return user
     }
 
-    // Login with email & password
+    /**
+     * Authenticates a user using email and password.
+     * * @return The authenticated [FirebaseUser] or null if login fails.
+     */
     suspend fun loginWithEmail(
         email: String,
         password: String
@@ -49,9 +58,15 @@ class AuthService {
         return result.user
     }
 
+    /**
+     * Signs out the currently authenticated user.
+     */
     fun signOut() {
         auth.signOut()
     }
 
-    fun authStateChanges() = auth.addAuthStateListener { /* optional */ }
+    /**
+     * Provides an interface to listen for changes in the user's authentication state.
+     */
+    fun authStateChanges() = auth.addAuthStateListener { }
 }

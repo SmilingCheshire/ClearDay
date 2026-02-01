@@ -30,6 +30,10 @@ import com.google.firebase.auth.FirebaseAuth
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
+/**
+ * Activity hosting the history calendar where users can visualize the relationship
+ * between air quality (borders) and symptom severity (background colors).
+ */
 class CalendarActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,17 +53,14 @@ fun CalendarScreen(onBack: () -> Unit) {
     val firestoreService = remember { FirestoreService() }
     val auth = remember { FirebaseAuth.getInstance() }
 
-    // State for current view
     var currentYearMonth by remember { mutableStateOf(YearMonth.now()) }
     var monthlyData by remember { mutableStateOf<Map<String, Map<String, Any>>>(emptyMap()) }
     var isLoading by remember { mutableStateOf(false) }
 
-    // State for Popup Dialog
     var showDialog by remember { mutableStateOf(false) }
     var selectedDateStr by remember { mutableStateOf("") }
     var selectedDayData by remember { mutableStateOf<Map<String, Any>?>(null) }
 
-    // Fetch data when month changes
     LaunchedEffect(currentYearMonth) {
         val uid = auth.currentUser?.uid
         if (uid != null) {
@@ -72,7 +73,6 @@ fun CalendarScreen(onBack: () -> Unit) {
         }
     }
 
-    // --- POPUP DIALOG ---
     if (showDialog) {
         DayDetailsDialog(
             date = selectedDateStr,
@@ -94,7 +94,6 @@ fun CalendarScreen(onBack: () -> Unit) {
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp)) {
-            // Month Navigation
             Row(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -113,7 +112,6 @@ fun CalendarScreen(onBack: () -> Unit) {
                 }
             }
 
-            // Days Header
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                 listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun").forEach {
                     Text(it, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
@@ -143,6 +141,9 @@ fun CalendarScreen(onBack: () -> Unit) {
     }
 }
 
+/**
+ * Renders the grid of days for a specific month, handling offsets for the first day of the week.
+ */
 @Composable
 fun CalendarGrid(
     yearMonth: YearMonth,
@@ -150,7 +151,7 @@ fun CalendarGrid(
     onDayClick: (String, Map<String, Any>?) -> Unit
 ) {
     val daysInMonth = yearMonth.lengthOfMonth()
-    val firstDayOfMonth = yearMonth.atDay(1).dayOfWeek.value // 1 (Mon) to 7 (Sun)
+    val firstDayOfMonth = yearMonth.atDay(1).dayOfWeek.value
     val emptyCells = firstDayOfMonth - 1
 
     LazyVerticalGrid(
@@ -159,21 +160,22 @@ fun CalendarGrid(
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         items(emptyCells) { Box(modifier = Modifier.aspectRatio(1f)) }
-
         items(daysInMonth) { dayIndex ->
             val day = dayIndex + 1
             val date = yearMonth.atDay(day)
             val dateKey = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
             val logData = data[dateKey]
-
             DayCell(day, logData, onClick = { onDayClick(dateKey, logData) })
         }
     }
 }
 
+/**
+ * Single day cell. Background color represents symptom severity,
+ * while the border represents the Air Quality Index (AQI).
+ */
 @Composable
 fun DayCell(day: Int, logData: Map<String, Any>?, onClick: () -> Unit) {
-    // Colors
     val backgroundColor = if (logData == null || !logData.containsKey("symptoms")) {
         Color.LightGray.copy(alpha = 0.3f)
     } else {
@@ -192,14 +194,16 @@ fun DayCell(day: Int, logData: Map<String, Any>?, onClick: () -> Unit) {
             .aspectRatio(1f)
             .background(backgroundColor, shape = RectangleShape)
             .border(BorderStroke(3.dp, borderColor), shape = RectangleShape)
-            .clickable { onClick() }, // Open Popup
+            .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Text(text = day.toString(), fontWeight = FontWeight.Bold)
     }
 }
 
-// --- NEW: Popup Dialog Component ---
+/**
+ * Detailed view of a selected day, showing breakdown of symptoms and exact AQI metrics.
+ */
 @Composable
 fun DayDetailsDialog(
     date: String,
@@ -208,37 +212,26 @@ fun DayDetailsDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Close") }
-        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Close") } },
         title = { Text(text = "Details for $date") },
         text = {
             if (data == null) {
                 Text("No data recorded for this day.")
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    // 1. Air Quality Section
                     if (data.containsKey("airQuality")) {
                         val aqi = getAqiValue(data["airQuality"])
-                        val color = getAqiColor(aqi)
-
                         Text("Air Quality", fontWeight = FontWeight.Bold)
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Surface(
-                                color = color,
-                                shape = RoundedCornerShape(4.dp),
-                                modifier = Modifier.size(24.dp)
-                            ) {}
+                            Surface(color = getAqiColor(aqi), shape = RoundedCornerShape(4.dp), modifier = Modifier.size(24.dp)) {}
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("AQI: $aqi (${getAqiDescription(aqi)})")
                         }
-                        Divider(modifier = Modifier.padding(vertical = 8.dp))
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                     }
 
-                    // 2. Symptoms Section
                     if (data.containsKey("symptoms") || data.containsKey("generalSeverity")) {
                         Text("How you felt", fontWeight = FontWeight.Bold)
-
                         val general = (data["generalSeverity"] as? Number)?.toInt() ?: 0
                         Text("General Severity: $general/5")
 
@@ -246,15 +239,9 @@ fun DayDetailsDialog(
                         if (!symptoms.isNullOrEmpty()) {
                             Text("Specific Symptoms:", fontSize = 14.sp, modifier = Modifier.padding(top=4.dp))
                             symptoms.forEach { (name, level) ->
-                                if (level.toInt() > 0) {
-                                    Text(" • $name: ${level.toInt()}/5", fontSize = 14.sp)
-                                }
+                                if (level.toInt() > 0) Text(" • $name: ${level.toInt()}/5", fontSize = 14.sp)
                             }
-                        } else {
-                            Text("No specific symptoms logged.", fontSize = 14.sp, color = Color.Gray)
                         }
-                    } else {
-                        Text("No symptom logs for this day.")
                     }
                 }
             }
@@ -262,83 +249,67 @@ fun DayDetailsDialog(
     )
 }
 
-// --- Helpers ---
+// --- Logic Helpers ---
 
 fun getAqiValue(aqiDataObj: Any?): Int {
     return try {
         val aqiMap = aqiDataObj as? Map<String, Any>
         val dataMap = aqiMap?.get("data") as? Map<String, Any>
-        // Try to get from data.aqi first, fallback to root aqi
         (dataMap?.get("aqi") as? Number)?.toInt()
             ?: (aqiMap?.get("aqi") as? Number)?.toInt()
             ?: 0
     } catch (e: Exception) { 0 }
 }
 
-fun getAqiColor(aqi: Int): Color {
-    return when (aqi) {
-        in 0..50 -> Color(0xFF009966)    // Green
-        in 51..100 -> Color(0xFFFFDE33)  // Yellow
-        in 101..150 -> Color(0xFFFF9933) // Orange
-        in 151..200 -> Color(0xFFCC0033) // Red
-        in 201..300 -> Color(0xFF660099) // Purple
-        else -> Color(0xFF7E0023)        // Maroon
-    }
+fun getAqiColor(aqi: Int): Color = when (aqi) {
+    in 0..50 -> Color(0xFF009966)
+    in 51..100 -> Color(0xFFFFDE33)
+    in 101..150 -> Color(0xFFFF9933)
+    in 151..200 -> Color(0xFFCC0033)
+    in 201..300 -> Color(0xFF660099)
+    else -> Color(0xFF7E0023)
 }
 
-fun getAqiDescription(aqi: Int): String {
-    return when (aqi) {
-        in 0..50 -> "Good"
-        in 51..100 -> "Moderate"
-        in 101..150 -> "Unhealthy for Sensitive"
-        in 151..200 -> "Unhealthy"
-        in 201..300 -> "Very Unhealthy"
-        else -> "Hazardous"
-    }
+fun getAqiDescription(aqi: Int): String = when (aqi) {
+    in 0..50 -> "Good"
+    in 51..100 -> "Moderate"
+    in 101..150 -> "Unhealthy for Sensitive"
+    in 151..200 -> "Unhealthy"
+    in 201..300 -> "Very Unhealthy"
+    else -> "Hazardous"
 }
 
 fun calculateSymptomColor(data: Map<String, Any>): Color {
     return try {
         val generalScore = (data["generalSeverity"] as? Number)?.toDouble() ?: 0.0
         val symptoms = data["symptoms"] as? Map<String, Number> ?: emptyMap()
-
-        val specificSymptomsSum = symptoms.values.map { it.toDouble() }.sum()
-        val specificAvg = if (symptoms.isNotEmpty()) specificSymptomsSum / symptoms.size else 0.0
-
-        // Final severity score calculation
+        val specificAvg = if (symptoms.isNotEmpty()) symptoms.values.map { it.toDouble() }.sum() / symptoms.size else 0.0
         val finalScore = if (symptoms.isNotEmpty()) (generalScore + specificAvg) / 2.0 else generalScore
 
         when {
-            finalScore < 1.0 -> Color(0xFF4CAF50) // Green
-            finalScore < 2.0 -> Color(0xFF8BC34A) // Light Green
-            finalScore < 3.0 -> Color(0xFFFFEB3B) // Yellow
-            finalScore < 4.0 -> Color(0xFFFF9800) // Orange
-            else -> Color(0xFFF44336)             // Red
+            finalScore < 1.0 -> Color(0xFF4CAF50)
+            finalScore < 2.0 -> Color(0xFF8BC34A)
+            finalScore < 3.0 -> Color(0xFFFFEB3B)
+            finalScore < 4.0 -> Color(0xFFFF9800)
+            else -> Color(0xFFF44336)
         }
-    } catch (e: Exception) {
-        Color.Gray
-    }
+    } catch (e: Exception) { Color.Gray }
 }
 
 @Composable
 fun Legend() {
     Column {
         Text("Legend:", fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(4.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(16.dp).background(Color(0xFF4CAF50)))
-            Spacer(Modifier.width(4.dp))
-            Text("Feels Good")
+            Text(" Feels Good", fontSize = 12.sp)
             Spacer(Modifier.width(16.dp))
             Box(Modifier.size(16.dp).background(Color(0xFFF44336)))
-            Spacer(Modifier.width(4.dp))
-            Text("Severe")
+            Text(" Severe", fontSize = 12.sp)
         }
-        Spacer(modifier = Modifier.height(4.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(16.dp).border(2.dp, Color.Black))
-            Spacer(Modifier.width(4.dp))
-            Text("Frame color = Air Quality")
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
+            Box(Modifier.size(16.dp).border(2.dp, Color.Gray))
+            Text(" Border color = Air Quality", fontSize = 12.sp)
         }
     }
 }

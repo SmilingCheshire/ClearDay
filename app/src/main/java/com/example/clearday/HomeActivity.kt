@@ -36,9 +36,11 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
+/**
+ * Main dashboard activity providing real-time allergy risk and air quality data.
+ */
 class HomeActivity : AppCompatActivity() {
 
-    // --- UI Variables ---
     private lateinit var alertContainer: View
     private lateinit var tvAlertBody: TextView
     private lateinit var tvAllergyRiskLabel: TextView
@@ -61,35 +63,32 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var btnSetBriefingTime: Button
     private lateinit var tvBriefingTime: TextView
 
-    // --- Swipe & Refresh ---
     private lateinit var gestureDetector: GestureDetector
     private lateinit var swipeRefresh: SwipeRefreshLayout
 
-    // --- Services ---
     private val auth = FirebaseAuth.getInstance()
     private val firestoreService = FirestoreService()
-    private val pollenRepository = PollenRepository() // Assuming default constructor works for this
+    private val pollenRepository = PollenRepository()
 
-    // --- Retrofit & Repositories (UPDATED) ---
-    // 1. OpenWeather Setup
     private val weatherRetrofit = Retrofit.Builder()
         .baseUrl("https://api.openweathermap.org/")
         .addConverterFactory(GsonConverterFactory.create())
         .build()
     private val weatherService = weatherRetrofit.create(WeatherService::class.java)
 
-    // 2. WAQI Setup (New for Accurate Air Quality)
     private val waqiRetrofit = Retrofit.Builder()
         .baseUrl("https://api.waqi.info/")
         .addConverterFactory(GsonConverterFactory.create())
         .build()
     private val waqiService = waqiRetrofit.create(WaqiService::class.java)
 
-    // 3. Initialize WeatherRepository with BOTH services
     private val weatherRepository = WeatherRepository(weatherService, waqiService)
 
     private val scope = CoroutineScope(Dispatchers.Main + Job())
 
+    /**
+     * Initializes activity, UI components, and data loading processes.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
@@ -100,17 +99,17 @@ class HomeActivity : AppCompatActivity() {
         btnAirQuality.setOnClickListener { startActivity(Intent(this, AirQualityActivity::class.java)) }
         btnSetBriefingTime.setOnClickListener { showTimePicker() }
 
-        // Setup Gestures
         gestureDetector = GestureDetector(this, SwipeListener())
         swipeRefresh = findViewById(R.id.swipeRefresh)
         setupManualRefresh()
 
-        // Load Data
         loadDashboardData()
         checkLocationPermission()
     }
 
-    // --- Touch Event Dispatcher for Gestures ---
+    /**
+     * Handles touch events to detect custom gestures.
+     */
     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
         if (ev != null && gestureDetector.onTouchEvent(ev)) {
             return true
@@ -118,6 +117,9 @@ class HomeActivity : AppCompatActivity() {
         return super.dispatchTouchEvent(ev)
     }
 
+    /**
+     * Binds UI components to their respective XML layouts.
+     */
     private fun initViews() {
         alertContainer = findViewById(R.id.alertContainer)
         tvAlertBody = findViewById(R.id.tvAlertBody)
@@ -143,31 +145,28 @@ class HomeActivity : AppCompatActivity() {
         alertContainer.visibility = View.GONE
     }
 
+    /**
+     * Verifies if location permissions are granted by the user.
+     */
     private fun checkLocationPermission() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 100)
         } else { loadDashboardData() }
     }
 
+    /**
+     * Retrieves user profile from Firestore and initiates data fetching.
+     */
     private fun loadDashboardData() {
         val uid = auth.currentUser?.uid
-        Log.d("CLEAR_DAY", "loadDashboardData - UID: $uid")
-        if (uid == null) {
-            Log.e("CLEAR_DAY", "User not logged in!")
-            return
-        }
-        
+        if (uid == null) return
+
         firestoreService.getUserProfile(uid, { user ->
-            Log.d("CLEAR_DAY", "User profile loaded: $user")
             if (user != null) {
-                Log.d("CLEAR_DAY", "Tracked allergens: ${user.trackedAllergens}")
                 updateBriefingTimeDisplay(user.morningBriefingHour, user.morningBriefingMinute)
                 scheduleDailyNotification(user.morningBriefingHour, user.morningBriefingMinute)
                 fetchRealTimeData(user)
             } else {
-                Log.e("CLEAR_DAY", "User profile is NULL! Creating default profile...")
-                
-                // Utwórz domyślny profil
                 val currentUser = auth.currentUser
                 val defaultUser = User(
                     uid = uid,
@@ -177,35 +176,34 @@ class HomeActivity : AppCompatActivity() {
                     trackedAllergens = emptyList(),
                     units = "metric"
                 )
-                
+
                 firestoreService.saveUserToFirestore(defaultUser) { success ->
                     if (success) {
-                        Log.d("CLEAR_DAY", "Default profile created")
                         updateBriefingTimeDisplay(defaultUser.morningBriefingHour, defaultUser.morningBriefingMinute)
                         scheduleDailyNotification(defaultUser.morningBriefingHour, defaultUser.morningBriefingMinute)
                         fetchRealTimeData(defaultUser)
-                    } else {
-                        Log.e("CLEAR_DAY", "Failed to create profile")
                     }
                 }
             }
-        }, { 
-            Log.e("CLEAR_DAY", "Firestore error loading user profile", it) 
+        }, {
+            Log.e("CLEAR_DAY", "Firestore error", it)
         })
     }
 
+    /**
+     * Orchestrates the process of fetching fresh environmental data based on current location.
+     */
     private fun fetchRealTimeData(user: User) {
         val uid = auth.currentUser?.uid ?: return
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         val fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        
-        Log.d("CLEAR_DAY", "fetchRealTimeData - Date: $today, User: ${user.name}")
 
-        // Pomiń cache i zawsze pobieraj świeże dane z API (tak jak w PollenViewModel)
         fetchEverythingFromApi(user, uid, today, fusedLocationClient, isManualRefresh = false)
     }
 
-    // --- MAIN API FETCHING LOGIC ---
+    /**
+     * Fetches pollen, air quality, and weather data from external APIs.
+     */
     private fun fetchEverythingFromApi(
         user: User,
         uid: String,
@@ -226,49 +224,32 @@ class HomeActivity : AppCompatActivity() {
 
             scope.launch {
                 try {
-                    Log.d("CLEAR_DAY", "Fetching from APIs - Lat: ${location.latitude}, Lon: ${location.longitude}")
-                    
-                    // MOCK: Using Israel coordinates (same as PollenViewModel)
                     val mockLatitude = 32.0853
                     val mockLongitude = 34.7818
-                    
-                    // 1. Fetch Pollen WITH PLANTS (same as PollenViewModel)
+
                     val pRes = pollenRepository.getPollenForecastWithPlants(
                         latitude = mockLatitude,
                         longitude = mockLongitude,
                         days = 1
                     )
-                    Log.d("CLEAR_DAY", "Pollen API Response: ${pRes.isSuccess}")
-                    
+
                     pRes.getOrNull()?.let { pollen ->
-                        Log.d("CLEAR_DAY", "✅ Pollen data received: ${pollen.dailyInfo?.size} days")
                         updatePollenUI(user, pollen)
-                    } ?: Log.e("CLEAR_DAY", "❌ Pollen data is NULL! Error: ${pRes.exceptionOrNull()?.message}")
+                    }
 
-                    // 2. Fetch Air Quality (Using WAQI Logic)
                     val aRes = weatherRepository.getAirQuality(location.latitude, location.longitude)
-                    Log.d("CLEAR_DAY", "AQI API Response: ${aRes.isSuccess}, Data: ${aRes.getOrNull()}")
-                    
                     aRes.getOrNull()?.let { aqiData ->
-                        // Save to Firebase (You might need to adjust what object you save since the model changed)
                         firestoreService.updateDailyLog(uid, date, "airQuality", aqiData)
+                        updateAqiUI(aqiData.data.aqi)
+                    }
 
-                        // Update UI directly from WAQI Score
-                        val score = aqiData.data.aqi
-                        Log.d("CLEAR_DAY", "Updating AQI UI with score: $score")
-                        updateAqiUI(score)
-                    } ?: Log.e("CLEAR_DAY", "AQI data is NULL! Error: ${aRes.exceptionOrNull()}")
-
-                    // 3. Fetch Current Weather
                     val wRes = weatherRepository.getCurrentWeather(location.latitude, location.longitude)
-                    Log.d("CLEAR_DAY", "Weather API Response: ${wRes.isSuccess}")
-                    
                     wRes.getOrNull()?.let { weather ->
                         firestoreService.updateDailyLog(uid, date, "weatherData", weather)
-                        val tempC = weather.main.temp.toInt()
-                        // Optional Toast
-                        if(isManualRefresh) Toast.makeText(this@HomeActivity, "Temp: $tempC°C", Toast.LENGTH_SHORT).show()
-                    } ?: Log.e("CLEAR_DAY", "Weather data is NULL! Error: ${wRes.exceptionOrNull()}")
+                        if(isManualRefresh) {
+                            Toast.makeText(this@HomeActivity, "Temp: ${weather.main.temp.toInt()}°C", Toast.LENGTH_SHORT).show()
+                        }
+                    }
 
                 } catch (e: Exception) {
                     Log.e("Home", "API Error", e)
@@ -282,75 +263,56 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Updates the UI elements related to various pollen types and risk levels.
+     */
     private fun updatePollenUI(user: User, pollenData: com.example.clearday.network.model.PollenForecastResponse?) {
-        Log.d("CLEAR_DAY", "updatePollenUI called with data: $pollenData")
-        
-        if (pollenData == null) {
-            Log.e("CLEAR_DAY", "Pollen data is NULL!")
-            return
-        }
-        
-        val todayInfo = pollenData.dailyInfo?.firstOrNull()
-        Log.d("CLEAR_DAY", "Today info: $todayInfo")
-        
-        if (todayInfo == null) {
-            Log.e("CLEAR_DAY", "Today info is NULL!")
-            return
-        }
-        
-        Log.d("CLEAR_DAY", "Pollen types info: ${todayInfo.pollenTypeInfo}")
-        
+        if (pollenData == null) return
+        val todayInfo = pollenData.dailyInfo?.firstOrNull() ?: return
+
         todayInfo.pollenTypeInfo?.forEach { type ->
             val v = type.indexInfo?.value ?: 0
             val cat = type.indexInfo?.category ?: "Low"
-            Log.d("CLEAR_DAY", "Type: ${type.code}, Value: $v, Category: $cat")
-            
+
             when (type.code) {
-                "GRASS" -> { 
+                "GRASS" -> {
                     tvGrassValue.text = "Index: $v"
                     pbGrass.progress = v * 20
                     tvGrassTag.text = cat
-                    Log.d("CLEAR_DAY", "Updated GRASS UI")
                 }
-                "TREE" -> { 
+                "TREE" -> {
                     tvTreeValue.text = "Index: $v"
                     pbTree.progress = v * 20
                     tvTreeTag.text = cat
-                    Log.d("CLEAR_DAY", "Updated TREE UI")
                 }
-                "WEED" -> { 
+                "WEED" -> {
                     tvWeedValue.text = "Index: $v"
                     pbWeed.progress = v * 20
                     tvWeedTag.text = cat
-                    Log.d("CLEAR_DAY", "Updated WEED UI")
                 }
             }
         }
-        
+
         val plants = todayInfo.plantInfo?.filter { it.code in (user.trackedAllergens ?: emptyList()) } ?: emptyList()
-        Log.d("CLEAR_DAY", "Filtered plants for user: $plants (tracked: ${user.trackedAllergens})")
-        
         val highRisk = plants.filter { (it.indexInfo?.value ?: 0) >= 3 }
+
         if (highRisk.isNotEmpty()) {
             alertContainer.visibility = View.VISIBLE
             tvAlertBody.text = "High levels: ${highRisk.joinToString { it.displayName }}"
-            Log.d("CLEAR_DAY", "Showing alert for high risk plants")
         }
-        
+
         if (plants.isNotEmpty()) {
             val avg = plants.map { it.indexInfo?.value ?: 0 }.average()
             tvAllergyScore.text = String.format("%.1f", avg)
             tvAllergyRiskLabel.text = if (avg >= 3) "High" else "Low"
-            Log.d("CLEAR_DAY", "Allergy score: $avg")
-        } else {
-            Log.d("CLEAR_DAY", "No plants tracked by user or no plant data available")
         }
     }
 
-    // Updated to use 0-500 scale from WAQI
+    /**
+     * Updates the Air Quality Index UI and provides health recommendations.
+     */
     private fun updateAqiUI(aqi: Int) {
         tvAqiValue.text = aqi.toString()
-
         val label = AqiUtils.getAqiLabel(aqi)
         val color = AqiUtils.getAqiColor(aqi)
 
@@ -358,7 +320,6 @@ class HomeActivity : AppCompatActivity() {
         tvAqiLabel.setTextColor(color)
         tvAqiValue.setTextColor(color)
 
-        // Basic advice logic based on score
         tvAqiAdvice.text = when(aqi) {
             in 0..50 -> "Safe for outdoor activities"
             in 51..100 -> "Good for most, sensitive people should watch out"
@@ -368,27 +329,28 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Sets up the SwipeRefreshLayout listener for manual data updates.
+     */
     private fun setupManualRefresh() {
         swipeRefresh.setOnRefreshListener {
             val uid = auth.currentUser?.uid
             if (uid != null) {
-                firestoreService.getUserProfile(uid,
-                    onSuccess = { user ->
-                        if (user != null) {
-                            val client = LocationServices.getFusedLocationProviderClient(this)
-                            val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-                            fetchEverythingFromApi(user, uid, today, client, isManualRefresh = true)
-                        } else swipeRefresh.isRefreshing = false
-                    },
-                    onFailure = {
-                        swipeRefresh.isRefreshing = false
-                    }
+                firestoreService.getUserProfile(uid, { user ->
+                    if (user != null) {
+                        val client = LocationServices.getFusedLocationProviderClient(this)
+                        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                        fetchEverythingFromApi(user, uid, today, client, isManualRefresh = true)
+                    } else swipeRefresh.isRefreshing = false
+                }, { swipeRefresh.isRefreshing = false }
                 )
             } else swipeRefresh.isRefreshing = false
         }
     }
 
-    // --- SWIPE GESTURE LOGIC ---
+    /**
+     * Listener class for handling swipe gestures to navigate activities.
+     */
     private inner class SwipeListener : GestureDetector.SimpleOnGestureListener() {
         private val SWIPE_THRESHOLD = 100
         private val SWIPE_VELOCITY_THRESHOLD = 100
@@ -407,6 +369,9 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Navigates to the WeatherActivity with current coordinates.
+     */
     private fun openWeatherActivity() {
         val client = LocationServices.getFusedLocationProviderClient(this)
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -424,7 +389,9 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-    // --- NOTIFICATION SCHEDULING ---
+    /**
+     * Schedules a periodic background worker for daily morning briefings.
+     */
     private fun scheduleDailyNotification(targetHour: Int, targetMinute: Int) {
         val currentDate = Calendar.getInstance()
         val dueDate = Calendar.getInstance()
@@ -451,38 +418,44 @@ class HomeActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * Displays a time picker dialog to set the daily briefing schedule.
+     */
     private fun showTimePicker() {
         val uid = auth.currentUser?.uid ?: return
-        
+
         firestoreService.getUserProfile(uid, { user ->
             val hour = user?.morningBriefingHour ?: 7
             val minute = user?.morningBriefingMinute ?: 0
-            
+
             TimePickerDialog(this, { _, selectedHour, selectedMinute ->
-                // Zapisz nowy czas do Firestore
                 val updates = mapOf(
                     "morningBriefingHour" to selectedHour,
                     "morningBriefingMinute" to selectedMinute
                 )
-                
+
                 firestoreService.updateUserProfile(uid, updates) { success ->
                     if (success) {
                         updateBriefingTimeDisplay(selectedHour, selectedMinute)
                         scheduleDailyNotification(selectedHour, selectedMinute)
-                        Toast.makeText(this, "Morning briefing set for ${String.format("%02d:%02d", selectedHour, selectedMinute)}", Toast.LENGTH_SHORT).show()
-                    } else {
-                        Toast.makeText(this, "Failed to save briefing time", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Morning briefing set", Toast.LENGTH_SHORT).show()
                     }
                 }
             }, hour, minute, true).show()
-        }, { 
-            Log.e("CLEAR_DAY", "Error loading user profile for time picker", it)
+        }, {
+            Log.e("CLEAR_DAY", "Profile loading error", it)
         })
     }
-    
+
+    /**
+     * Updates the UI display showing the scheduled briefing time.
+     */
     private fun updateBriefingTimeDisplay(hour: Int, minute: Int) {
         tvBriefingTime.text = "Morning briefing: ${String.format("%02d:%02d", hour, minute)}"
     }
 
+    /**
+     * Cancels background coroutines when the activity is destroyed.
+     */
     override fun onDestroy() { super.onDestroy(); scope.cancel() }
 }

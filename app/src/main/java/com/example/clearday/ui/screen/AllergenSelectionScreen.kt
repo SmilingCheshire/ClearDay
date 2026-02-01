@@ -1,6 +1,6 @@
 package com.example.clearday.ui.screen
-import androidx.compose.foundation.clickable
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,8 +11,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-// Pamiętaj o imporcie swojego obiektu z listą alergenów
 import com.example.clearday.utils.AllergenData
+import java.util.*
+
+/**
+ * Screen allowing users to select allergens they want to track.
+ * Formats internal allergen keys into human-readable display names.
+ */
 @Composable
 fun AllergenSelectionScreen(
     onSelectionComplete: (List<String>) -> Unit
@@ -38,6 +43,10 @@ fun AllergenSelectionScreen(
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(AllergenData.allergens) { allergen ->
                 val isSelected = selectedAllergens.contains(allergen)
+                val displayName = allergen.replace("_", " ")
+                    .lowercase()
+                    .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -50,10 +59,10 @@ fun AllergenSelectionScreen(
                 ) {
                     Checkbox(
                         checked = isSelected,
-                        onCheckedChange = null // Handled by Row clickable
+                        onCheckedChange = null
                     )
                     Spacer(modifier = Modifier.width(12.dp))
-                    Text(text = allergen.replace("_", " ").lowercase().capitalize())
+                    Text(text = displayName)
                 }
             }
         }

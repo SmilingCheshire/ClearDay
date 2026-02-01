@@ -5,8 +5,14 @@ import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
 
+/**
+ * Retrofit interface defining endpoints for the World Air Quality Index (WAQI) API.
+ */
 interface WaqiService {
-    // URL format: https://api.waqi.info/feed/geo:10.3;20.4/?token=...
+
+    /**
+     * Fetches real-time air quality data for a geographical point.
+     */
     @GET("feed/geo:{lat};{lon}/")
     suspend fun getAirQuality(
         @Path("lat") lat: Double,

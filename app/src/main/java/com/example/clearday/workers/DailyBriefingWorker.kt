@@ -21,6 +21,10 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.Calendar
 
+/**
+ * Background worker responsible for generating and sending a morning briefing notification.
+ * It consolidates weather forecast (min temperature during day hours) and air quality data.
+ */
 class DailyBriefingWorker(
     appContext: Context,
     workerParams: WorkerParameters
@@ -28,51 +32,41 @@ class DailyBriefingWorker(
 
     override suspend fun doWork(): Result {
         return try {
-            // 1. Setup OpenWeather (For Temp/Forecast)
+            // Manual Retrofit setup for background execution context
             val weatherRetrofit = Retrofit.Builder()
                 .baseUrl("https://api.openweathermap.org/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
             val weatherService = weatherRetrofit.create(WeatherService::class.java)
 
-            // 2. Setup WAQI (For Air Quality)
             val waqiRetrofit = Retrofit.Builder()
                 .baseUrl("https://api.waqi.info/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
             val waqiService = waqiRetrofit.create(WaqiService::class.java)
 
-            // 3. Init Repository with BOTH
             val repo = WeatherRepository(weatherService, waqiService)
 
-            // 4. Get Location
             val location = getLastKnownLocation() ?: return Result.retry()
 
-            // 5. Fetch Forecast (For Coldest Temp)
             val forecastRes = repo.getForecast(location.latitude, location.longitude)
             val coldestTemp = if (forecastRes.isSuccess) {
                 calculateColdestDayTemp(forecastRes.getOrThrow().list)
             } else {
-                // Fallback to current weather if forecast fails
                 repo.getCurrentWeather(location.latitude, location.longitude).getOrNull()?.main?.temp ?: 0.0
             }
 
-            // 6. Fetch AQI (Using WAQI Logic)
             val aqiRes = repo.getAirQuality(location.latitude, location.longitude)
             var aqiString = "Unknown"
 
             if (aqiRes.isSuccess) {
                 val data = aqiRes.getOrThrow().data
-
-                // Direct Score from API (No Math needed)
                 val score = data.aqi
                 val label = AqiUtils.getAqiLabel(score)
                 aqiString = "$score ($label)"
             }
 
-            // 7. Send Notification
             sendNotification(coldestTemp, aqiString)
-
             Result.success()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -80,11 +74,14 @@ class DailyBriefingWorker(
         }
     }
 
+    /**
+     * Filters the 5-day forecast to find the minimum temperature for today
+     * between 07:00 and 20:00.
+     */
     private fun calculateColdestDayTemp(list: List<WeatherService.ForecastItem>): Double {
         val calendar = Calendar.getInstance()
         val currentDay = calendar.get(Calendar.DAY_OF_YEAR)
 
-        // Filter: Today ONLY, between 07:00 and 20:00
         val dayList = list.filter {
             val date = java.util.Date(it.dt * 1000)
             calendar.time = date
@@ -95,11 +92,13 @@ class DailyBriefingWorker(
         }
 
         if (dayList.isEmpty()) return 0.0
-
-        // Find minimum temp
         return dayList.minOf { it.main.temp }
     }
 
+    /**
+     * Retrieves the last known location using FusedLocationProviderClient.
+     * Requires ACCESS_FINE_LOCATION permission.
+     */
     private suspend fun getLastKnownLocation(): Location? {
         val client = LocationServices.getFusedLocationProviderClient(applicationContext)
         if (ActivityCompat.checkSelfPermission(applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -108,6 +107,9 @@ class DailyBriefingWorker(
         return client.lastLocation.await()
     }
 
+    /**
+     * Builds and displays the system notification with the briefing summary.
+     */
     private fun sendNotification(temp: Double, aqi: String) {
         val channelId = "daily_briefing_channel"
         val manager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
