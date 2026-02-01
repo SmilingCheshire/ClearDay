@@ -61,7 +61,7 @@ fun PollenScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Prognoza pyłków") },
+                title = { Text("Pollen Forecast") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -76,7 +76,7 @@ fun PollenScreen(
         ) {
             when (val state = uiState) {
                 is PollenUiState.Idle -> {
-                    CenteredMessage("Oczekiwanie na lokalizację...")
+                    CenteredMessage("Waiting for location...")
                 }
                 
                 is PollenUiState.Loading -> {
@@ -201,7 +201,7 @@ private fun DailyPollenCard(dailyInfo: DailyInfo) {
                 Divider()
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Rośliny:",
+                    text = "Plants:",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -242,7 +242,7 @@ private fun PollenTypeItem(pollenType: PollenTypeInfo) {
             )
             if (pollenType.inSeason == true) {
                 Text(
-                    text = "W sezonie",
+                    text = "In season",
                     style = MaterialTheme.typography.bodySmall,
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -267,7 +267,7 @@ private fun PollenTypeItem(pollenType: PollenTypeInfo) {
                 .padding(start = 8.dp)
         ) {
             Text(
-                text = "Zalecenia:",
+                text = "Recommendations:",
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
                 fontSize = 11.sp
@@ -319,7 +319,7 @@ private fun ErrorContent(message: String, onRetry: () -> Unit) {
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Błąd",
+            text = "Error",
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.error,
             fontWeight = FontWeight.Bold
@@ -332,7 +332,7 @@ private fun ErrorContent(message: String, onRetry: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onRetry) {
-            Text("Spróbuj ponownie")
+            Text("Try Again")
         }
     }
 }

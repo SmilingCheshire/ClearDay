@@ -35,13 +35,9 @@ class PollenViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.value = PollenUiState.Loading
             
-            // MOCK: Using Israel coordinates for testing (Tel Aviv)
-            val mockLatitude = 32.0853
-            val mockLongitude = 34.7818
-            
             val result = repository.getPollenForecastWithPlants(
-                latitude = mockLatitude,  // Using mock coordinates
-                longitude = mockLongitude,  // Using mock coordinates
+                latitude = latitude,
+                longitude = longitude,
                 days = days
             )
             

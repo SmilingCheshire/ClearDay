@@ -406,6 +406,15 @@
                 android:backgroundTint="#4CAF50"
                 android:textColor="#FFFFFF" />
 
+            <Button
+                android:id="@+id/btnAirQuality"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Air Quality Index"
+                android:backgroundTint="#03A9F4"
+                android:textColor="#FFFFFF" />
+
             <TextView
                 android:id="@+id/tvBriefingTime"
                 android:layout_width="match_parent"

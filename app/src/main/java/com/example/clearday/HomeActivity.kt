@@ -57,6 +57,7 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var tvAqiAdvice: TextView
     private lateinit var btnOpenPollen: Button
     private lateinit var btnSymptomDiary: Button
+    private lateinit var btnAirQuality: Button
     private lateinit var btnSetBriefingTime: Button
     private lateinit var tvBriefingTime: TextView
 
@@ -96,6 +97,7 @@ class HomeActivity : AppCompatActivity() {
 
         btnOpenPollen.setOnClickListener { startActivity(Intent(this, PollenActivity::class.java)) }
         btnSymptomDiary.setOnClickListener { startActivity(Intent(this, SymptomDiaryActivity::class.java)) }
+        btnAirQuality.setOnClickListener { startActivity(Intent(this, AirQualityActivity::class.java)) }
         btnSetBriefingTime.setOnClickListener { showTimePicker() }
 
         // Setup Gestures
@@ -135,6 +137,7 @@ class HomeActivity : AppCompatActivity() {
         tvAqiAdvice = findViewById(R.id.tvAqiAdvice)
         btnOpenPollen = findViewById(R.id.btnOpenPollen)
         btnSymptomDiary = findViewById(R.id.btnSymptomDiary)
+        btnAirQuality = findViewById(R.id.btnAirQuality)
         btnSetBriefingTime = findViewById(R.id.btnSetBriefingTime)
         tvBriefingTime = findViewById(R.id.tvBriefingTime)
         alertContainer.visibility = View.GONE
