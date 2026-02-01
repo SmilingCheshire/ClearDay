@@ -1,14 +1,18 @@
 package com.example.clearday.repository
 
+import android.util.Log
 import com.example.clearday.network.PollenApiClient
 import com.example.clearday.network.model.PollenForecastResponse
 
+/**
+ * Repository for fetching pollen levels and plant-specific forecasts using Google Pollen API.
+ */
 class PollenRepository {
 
     private val pollenApiService = PollenApiClient.pollenApiService
 
     /**
-     * Get pollen forecast for a specific location.
+     * Retrieves general pollen forecast for a given location.
      */
     suspend fun getPollenForecast(
         latitude: Double,
@@ -32,7 +36,7 @@ class PollenRepository {
     }
 
     /**
-     * Get pollen forecast with detailed plant information.
+     * Retrieves pollen forecast including detailed botanical information about plants.
      */
     suspend fun getPollenForecastWithPlants(
         latitude: Double,

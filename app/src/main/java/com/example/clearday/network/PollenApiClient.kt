@@ -6,6 +6,10 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+/**
+ * Singleton client for the Google Pollen API.
+ * Provides lazy initialization for the PollenApiService and access to API credentials.
+ */
 object PollenApiClient {
 
     private const val BASE_URL = "https://pollen.googleapis.com/"
@@ -28,6 +32,5 @@ object PollenApiClient {
         retrofit.create(PollenApiService::class.java)
     }
 
-    // Helper function to get API key from BuildConfig
     fun getApiKey(): String = BuildConfig.POLLEN_API_KEY
 }

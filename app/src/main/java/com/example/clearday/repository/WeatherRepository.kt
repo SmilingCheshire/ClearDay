@@ -1,30 +1,69 @@
 package com.example.clearday.repository
 
-
 import com.example.clearday.BuildConfig
-import com.example.clearday.network.ApiClient
-import com.example.clearday.network.WeatherApiService
-import com.example.clearday.network.model.AirQualityResponse
-import com.example.clearday.network.model.WeatherResponse
+import com.example.clearday.models.CurrentWeatherResponse
+import com.example.clearday.models.WaqiResponse
+import com.example.clearday.network.WeatherService
+import com.example.clearday.network.WaqiService
 
-class WeatherRepository {
+/**
+ * Consolidated repository for weather conditions (OpenWeather) and air quality data (WAQI).
+ */
+class WeatherRepository(
+    private val weatherApi: WeatherService,
+    private val waqiApi: WaqiService
+) {
 
-    private val api: WeatherApiService =
-        ApiClient.retrofit.create(WeatherApiService::class.java)
-
-    suspend fun getWeather(lat: Double, lon: Double): WeatherResponse {
-        return api.getCurrentWeather(
-            lat = lat,
-            lon = lon,
-            apiKey = BuildConfig.OPENWEATHER_API_KEY
-        )
+    /**
+     * Fetches current atmospheric weather conditions.
+     */
+    suspend fun getCurrentWeather(lat: Double, lon: Double): Result<CurrentWeatherResponse> {
+        return try {
+            val res = weatherApi.getCurrentWeather(
+                lat,
+                lon,
+                BuildConfig.OPENWEATHER_API_KEY
+            )
+            Result.success(res)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
-    suspend fun getAirQuality(lat: Double, lon: Double): AirQualityResponse {
-        return api.getAirQuality(
-            lat = lat,
-            lon = lon,
-            apiKey = BuildConfig.OPENWEATHER_API_KEY
-        )
+    /**
+     * Retrieves detailed air quality data from the WAQI API service.
+     */
+    suspend fun getAirQuality(lat: Double, lon: Double): Result<WaqiResponse> {
+        return try {
+            val response = waqiApi.getAirQuality(
+                lat = lat,
+                lon = lon,
+                token = BuildConfig.WAQI_API_KEY
+            )
+
+            if (response.status == "ok") {
+                Result.success(response)
+            } else {
+                Result.failure(Exception("API Error: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Fetches long-term weather forecast data.
+     */
+    suspend fun getForecast(lat: Double, lon: Double): Result<WeatherService.ForecastResponse> {
+        return try {
+            val res = weatherApi.getForecast(
+                lat,
+                lon,
+                BuildConfig.OPENWEATHER_API_KEY
+            )
+            Result.success(res)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }
